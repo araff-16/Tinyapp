@@ -63,6 +63,13 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect('/urls');
 });
 
+//Post request for updating long URL
+//redirects user back to /urls after submission
+app.post("/urls/:id", (req,res) => {
+  urlDatabase[req.params.id] = req.body.longURL;
+  res.redirect('/urls');
+});
+
 // Provides page that shows longURL and shortURL
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
