@@ -25,8 +25,9 @@ const generateRandomString = function() {
 };
 
 
+//******************* GET REQUESTS
 
-
+//Sends Hello to client 
 app.get('/',(req,res)=> {
   res.send('Hello!');
 });
@@ -51,6 +52,27 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
+
+// Provides page that shows longURL and shortURL
+app.get("/urls/:shortURL", (req, res) => {
+
+  //Check to verify if shortURL is valid
+  if (!urlDatabase[req.params.shortURL]){
+    res.send("INVALID URL");
+    return;
+  }
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  res.render("urls_show", templateVars);
+});
+
+// redirects client to the longURL corresponding to the shortURL
+app.get("/u/:shortURL", (req, res) => {
+  let longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
+
+
+//******************* POST REQUESTS
 
 //Recieves longURL, generates shortURL and saves the pair to database
 //Redirects client to the page which shows the longURL and shortURL
@@ -82,23 +104,7 @@ app.post("/login", (req,res) => {
   res.redirect('/urls')
 })
 
-// Provides page that shows longURL and shortURL
-app.get("/urls/:shortURL", (req, res) => {
-
-  //Check to verify if shortURL is valid
-  if (!urlDatabase[req.params.shortURL]){
-    res.send("INVALID URL");
-    return;
-  }
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
-  res.render("urls_show", templateVars);
-});
-
-// redirects client to the longURL corresponding to the shortURL
-app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
-});
+//******************* APP LISTENING
 
 app.listen(PORT, () =>{
   console.log(`Example app listening on port ${PORT}!`);
