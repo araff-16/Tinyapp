@@ -50,10 +50,17 @@ app.get("/urls/new", (req, res) => {
 
 //Recieves longURL, generates shortURL and saves the pair to database
 //Redirects client to the page which shows the longURL and shortURL
+//Note we had to install body-parser to read from the request body
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
   res.redirect(`/urls/${shortURL}`);
+});
+
+//Deletes URL after delete button is pressed on /urls page
+app.post("/urls/:shortURL/delete", (req, res) => {
+  delete urlDatabase[req.params.shortURL];
+  res.redirect('/urls');
 });
 
 // Provides page that shows longURL and shortURL
@@ -72,4 +79,4 @@ app.listen(PORT, () =>{
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-//WHAT HAPPEN WHEN  A USER REQUEST A NON EXISTENT SHORT URL 
+//WHAT HAPPEN WHEN  A USER REQUEST A NON EXISTENT SHORT URL
