@@ -74,6 +74,14 @@ app.post("/urls/:id", (req,res) => {
   res.redirect('/urls');
 });
 
+// Accepts username from log in form and creates a cookie
+// Redirects user back to /urls
+app.post("/login", (req,res) => {
+  console.log(req.body.username)
+  res.cookie('username', req.body.username)
+  res.redirect('/urls')
+})
+
 // Provides page that shows longURL and shortURL
 app.get("/urls/:shortURL", (req, res) => {
 
