@@ -72,3 +72,4 @@ app.listen(PORT, () =>{
   console.log(`Example app listening on port ${PORT}!`);
 });
 
+//WHAT HAPPEN WHEN  A USER REQUEST A NON EXISTENT SHORT URL 
