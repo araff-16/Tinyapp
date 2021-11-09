@@ -72,6 +72,12 @@ app.post("/urls/:id", (req,res) => {
 
 // Provides page that shows longURL and shortURL
 app.get("/urls/:shortURL", (req, res) => {
+
+  //Check to verify if shortURL is valid
+  if (!urlDatabase[req.params.shortURL]){
+    res.send("INVALID URL");
+    return;
+  }
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
 });
