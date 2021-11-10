@@ -88,9 +88,8 @@ app.get("/u/:shortURL", (req, res) => {
 //TEMP GET REQUEST
 //WE HAVE TO SEND IT TEMPLATE VAR OR IT ERRORS
 app.get("/register", (req,res) => {
-  const templateVars = { username: req.cookies["username"] };
 
-  res.render("urls_register", templateVars)
+  res.render("urls_register")
 })
 
 //******************* POST REQUESTS
@@ -140,8 +139,7 @@ app.post("/register", (req,res) =>{
     email: req.body.email,
     password:req.body.password
   }
-  
-  res.cookie('user_id', users[userId])
+  res.cookie('user_id', userId)
   res.redirect('/urls');
 })
 
