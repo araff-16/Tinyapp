@@ -5,6 +5,9 @@ const PORT = 8080;
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
 app.set("view engine", "ejs");
 
 const urlDatabase = {
@@ -22,6 +25,9 @@ const generateRandomString = function() {
 };
 
 
+//******************* GET REQUESTS
+
+//Sends Hello to client
 app.get('/',(req,res)=> {
   res.send('Hello!');
 });
@@ -38,14 +44,36 @@ app.get("/hello", (req, res) =>{
 
 //Provides a list of all shortURLs with corresponding longURLS
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase};
+  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
   res.render("urls_index", templateVars);
 });
 
 //Provides form input for longURL
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = { username: req.cookies["username"] };
+  res.render("urls_new", templateVars);
 });
+
+// Provides page that shows longURL and shortURL
+app.get("/urls/:shortURL", (req, res) => {
+  console.log('inside app.get/urls/:shortURL');
+  //Check to verify if shortURL is valid
+  if (!urlDatabase[req.params.shortURL]) {
+    res.send("INVALID URL");
+    return;
+  }
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies["username"] };
+  res.render("urls_show", templateVars);
+});
+
+// redirects client to the longURL corresponding to the shortURL
+app.get("/u/:shortURL", (req, res) => {
+  let longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
+
+
+//******************* POST REQUESTS
 
 //Recieves longURL, generates shortURL and saves the pair to database
 //Redirects client to the page which shows the longURL and shortURL
@@ -69,26 +97,28 @@ app.post("/urls/:id", (req,res) => {
   res.redirect('/urls');
 });
 
-// Provides page that shows longURL and shortURL
-app.get("/urls/:shortURL", (req, res) => {
-
-  //Check to verify if shortURL is valid
-  if (!urlDatabase[req.params.shortURL]){
-    res.send("INVALID URL");
-    return;
-  }
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
-  res.render("urls_show", templateVars);
+// Deletes username cookie
+// Redirects user back to /urls
+app.post("/logout", (req,res) => {
+  res.clearCookie('username');
+  console.log('HELLELLE');
+  res.redirect('/urls');
 });
 
-// redirects client to the longURL corresponding to the shortURL
-app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+// Accepts username from log in form and creates a cookie
+// Redirects user back to /urls
+app.post("/login", (req,res) => {
+  res.cookie('username', req.body.username);
+  res.redirect('/urls');
 });
+
+
+
+//******************* APP LISTENING
 
 app.listen(PORT, () =>{
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-//WHAT HAPPEN WHEN  A USER REQUEST A NON EXISTENT SHORT URL
+
+
