@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
 const cookieParser = require('cookie-parser');
-app.use(cookieParser())
+app.use(cookieParser());
 
 app.set("view engine", "ejs");
 
@@ -27,7 +27,7 @@ const generateRandomString = function() {
 
 //******************* GET REQUESTS
 
-//Sends Hello to client 
+//Sends Hello to client
 app.get('/',(req,res)=> {
   res.send('Hello!');
 });
@@ -50,15 +50,15 @@ app.get("/urls", (req, res) => {
 
 //Provides form input for longURL
 app.get("/urls/new", (req, res) => {
-  const templateVars = { username: req.cookies["username"] }
+  const templateVars = { username: req.cookies["username"] };
   res.render("urls_new", templateVars);
 });
 
 // Provides page that shows longURL and shortURL
 app.get("/urls/:shortURL", (req, res) => {
-
+  console.log('inside app.get/urls/:shortURL');
   //Check to verify if shortURL is valid
-  if (!urlDatabase[req.params.shortURL]){
+  if (!urlDatabase[req.params.shortURL]) {
     res.send("INVALID URL");
     return;
   }
@@ -97,13 +97,22 @@ app.post("/urls/:id", (req,res) => {
   res.redirect('/urls');
 });
 
+// Deletes username cookie
+// Redirects user back to /urls
+app.post("/logout", (req,res) => {
+  res.clearCookie('username');
+  console.log('HELLELLE');
+  res.redirect('/urls');
+});
+
 // Accepts username from log in form and creates a cookie
 // Redirects user back to /urls
 app.post("/login", (req,res) => {
-  console.log(req.body.username)
-  res.cookie('username', req.body.username)
-  res.redirect('/urls')
-})
+  res.cookie('username', req.body.username);
+  res.redirect('/urls');
+});
+
+
 
 //******************* APP LISTENING
 
@@ -111,4 +120,3 @@ app.listen(PORT, () =>{
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-//WHAT HAPPEN WHEN  A USER REQUEST A NON EXISTENT SHORT URL
