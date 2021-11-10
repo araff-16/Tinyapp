@@ -58,6 +58,7 @@ app.get("/hello", (req, res) =>{
 //Provides a list of all shortURLs with corresponding longURLS
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
+  console.log(req.cookies["user_id"].email )
   res.render("urls_index", templateVars);
 });
 
@@ -130,7 +131,19 @@ app.post("/login", (req,res) => {
   res.redirect('/urls');
 });
 
-
+//Acquires the users email and password and stores in the global users object 
+//Redirects user to 
+app.post("/register", (req,res) =>{
+  let userId = "user" + generateRandomString();
+  users[userId] = {
+    id: userId,
+    email: req.body.email,
+    password:req.body.password
+  }
+  
+  res.cookie('user_id', users[userId])
+  res.redirect('/urls');
+})
 
 //******************* APP LISTENING
 
