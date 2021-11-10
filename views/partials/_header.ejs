@@ -19,13 +19,27 @@
           </div>
         </form>
       <% } else { %>
-      <form class="form-inline center justify-content-center" action="/login" method="POST">
-        <div class="form-group mb-2 ">
+      
+      <div class = "form-inline form-group mb-2">
+        <form class="form-inline center justify-content-center " action="/login" method="GET">
+            
           <!--
-            <input class="form-control" type="text" name="username" placeholder="Username" style="width: 300px; margin: 1em"> -->
+          <input class="form-control" type="text" name="username" placeholder="Username" style="width: 300px; margin: 1em"> 
+          -->
           <button type="submit" class="btn btn-outline-dark">Login</button>
-        </div>
-      </form>
+            
+        </form>  
+      
+      
+        <form class="form-inline center justify-content-center" action="/register" method="GET">
+          
+          <!--
+          <input class="form-control" type="text" name="username" placeholder="Username" style="width: 300px; margin: 1em"> -->
+            
+          <button type="submit" class="btn btn-outline-dark" style="margin:10px">Register</button>
+          
+        </form>
+      </div>
       <% } %>
     </div>
   </nav>
