@@ -107,7 +107,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-//Provides form input for longURL
+//Provides form input for new longURL
 app.get("/urls/new", (req, res) => {
   const templateVars = { user: users[req.cookies["user_id"]] };
   res.render("urls_new", templateVars);
@@ -132,12 +132,14 @@ app.get("/u/:shortURL", (req, res) => {
 
 //Takes client to register page 
 app.get("/register", (req,res) => {
-  res.render("urls_register")
+  const templateVars = { user: users[req.cookies["user_id"]] }
+  res.render("urls_register", templateVars)
 })
 
 //Takes client to login page
 app.get("/login", (req,res) => {
-  res.render("urls_login")
+  const templateVars = { user: users[req.cookies["user_id"]] }
+  res.render("urls_login", templateVars)
 })
 
 //******************* POST REQUESTS
