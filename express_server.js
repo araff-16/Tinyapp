@@ -108,7 +108,14 @@ app.get("/urls", (req, res) => {
 });
 
 //Provides form input for new longURL
+//First checks if a user is logged in with cookies
 app.get("/urls/new", (req, res) => {
+  
+  if (!users[req.cookies["user_id"]]){
+    res.redirect("/login")
+    return
+  }
+
   const templateVars = { user: users[req.cookies["user_id"]] };
   res.render("urls_new", templateVars);
 });
@@ -148,6 +155,12 @@ app.get("/login", (req,res) => {
 //Redirects client to the page which shows the longURL and shortURL
 //Note we had to install body-parser to read from the request body
 app.post("/urls", (req, res) => {
+
+  if (!users[req.cookies["user_id"]]){
+    res.send("PLEASE LOGIN")
+    return
+  }
+  
   let shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
   res.redirect(`/urls/${shortURL}`);
