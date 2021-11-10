@@ -11,17 +11,28 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 
 //******************* DATABASE
-
+/*
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
+};
+*/
+const urlDatabase = {
+  b6UTxQ: {
+      longURL: "https://www.tsn.ca",
+      userID: "aJ48lW"
+  },
+  i3BoGr: {
+      longURL: "https://www.google.ca",
+      userID: "aJ48lW"
+  }
 };
 
 const users = { 
   "userRandomID": {
     id: "userRandomID", 
     email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    password: "qwert"
   },
  "user2RandomID": {
     id: "user2RandomID", 
@@ -111,7 +122,7 @@ app.get("/urls", (req, res) => {
 //First checks if a user is logged in with cookies
 app.get("/urls/new", (req, res) => {
   
-  if (!users[req.cookies["user_id"]]){
+  if (!req.cookies["user_id"]){
     res.redirect("/login")
     return
   }
@@ -154,15 +165,22 @@ app.get("/login", (req,res) => {
 //Recieves longURL, generates shortURL and saves the pair to database
 //Redirects client to the page which shows the longURL and shortURL
 //Note we had to install body-parser to read from the request body
+//Blocks post request if user is not logged in
 app.post("/urls", (req, res) => {
 
-  if (!users[req.cookies["user_id"]]){
+  if (!req.cookies["user_id"]){
     res.send("PLEASE LOGIN")
     return
   }
   
   let shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
+
+  urlDatabase[shortURL] = {
+    longURL: req.body.longURL,
+    userID: req.cookies["user_id"]
+  }
+
+  console.log(urlDatabase)
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -175,7 +193,13 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 //Post request for updating long URL
 //redirects user back to /urls after submission
 app.post("/urls/:id", (req,res) => {
-  urlDatabase[req.params.id] = req.body.longURL;
+
+  urlDatabase[req.params.id] = {
+    longURL:req.body.longURL,
+     userID: req.cookies["user_id"] 
+  };
+
+  console.log(urlDatabase)
   res.redirect('/urls');
 });
 
@@ -232,11 +256,7 @@ app.post("/register", (req,res) =>{
 })
 
 
-app.post("/login", (req,res) => {
 
-
-
-})
 //******************* APP LISTENING
 
 app.listen(PORT, () =>{
