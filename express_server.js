@@ -56,7 +56,6 @@ app.get("/urls/new", (req, res) => {
 
 // Provides page that shows longURL and shortURL
 app.get("/urls/:shortURL", (req, res) => {
-  console.log('inside app.get/urls/:shortURL');
   //Check to verify if shortURL is valid
   if (!urlDatabase[req.params.shortURL]) {
     res.send("INVALID URL");
@@ -101,7 +100,6 @@ app.post("/urls/:id", (req,res) => {
 // Redirects user back to /urls
 app.post("/logout", (req,res) => {
   res.clearCookie('username');
-  console.log('HELLELLE');
   res.redirect('/urls');
 });
 
