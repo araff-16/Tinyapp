@@ -10,6 +10,8 @@ app.use(cookieParser());
 
 app.set("view engine", "ejs");
 
+//******************* DATABASE
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -28,6 +30,9 @@ const users = {
   }
 }
 
+//******************* HELPER FUNCTIONS
+
+
 // Generates a random string of 6 alphanumeric characters
 const generateRandomString = function() {
   const options = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','0','1','2','3','4','5','6','7','8','9'];
@@ -44,12 +49,39 @@ const emailChecker = function (emailToCheck) {
 
   for (let user in users){
     if (emailToCheck === users[user].email){
-      return true
+      return users[user].id
+    }
+  }
+
+  return null
+}
+
+//Checks if an password matchs for a specific email
+//Returns true if exists and false otherwise
+const passowrdChecker = function (email, passwordToCheck) {
+
+  for (let user in users){
+    if (email === users[user].email){
+      if (passwordToCheck === users[user].password){
+        return true
+      } else {
+        return false
+      }
     }
   }
   return false
 }
 
+//Returns id for specied email
+const provideId = function (email) {
+
+  for (let user in users){
+    if (email === users[user].email){
+      return users[user].id
+    }
+  }
+  return false
+}
 
 //******************* GET REQUESTS
 
@@ -75,7 +107,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-//Provides form input for longURL
+//Provides form input for new longURL
 app.get("/urls/new", (req, res) => {
   const templateVars = { user: users[req.cookies["user_id"]] };
   res.render("urls_new", templateVars);
@@ -98,11 +130,16 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-//TEMP GET REQUEST
-//WE HAVE TO SEND IT TEMPLATE VAR OR IT ERRORS
+//Takes client to register page 
 app.get("/register", (req,res) => {
+  const templateVars = { user: users[req.cookies["user_id"]] }
+  res.render("urls_register", templateVars)
+})
 
-  res.render("urls_register")
+//Takes client to login page
+app.get("/login", (req,res) => {
+  const templateVars = { user: users[req.cookies["user_id"]] }
+  res.render("urls_login", templateVars)
 })
 
 //******************* POST REQUESTS
@@ -132,15 +169,28 @@ app.post("/urls/:id", (req,res) => {
 // Deletes username cookie
 // Redirects user back to /urls
 app.post("/logout", (req,res) => {
-  res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect('/urls');
 });
 
 // Accepts username from log in form and creates a cookie
 // Redirects user back to /urls
 app.post("/login", (req,res) => {
-  res.cookie('username', req.body.username);
+
+  if (!emailChecker(req.body.email)){
+    res.status(403).send('USER EMAIL CANNOT BE FOUND')
+    return
+  } else 
+
+  if(!passowrdChecker(req.body.email,req.body.password)){
+    res.status(403).send('PASSWORD INVALID')
+    return
+  }
+
+  res.cookie('user_id', provideId(req.body.email))
   res.redirect('/urls');
+
+  
 });
 
 //Acquires the users email and password and stores in the global users object 
@@ -168,8 +218,18 @@ app.post("/register", (req,res) =>{
   res.redirect('/urls');
 })
 
+
+app.post("/login", (req,res) => {
+
+
+
+})
 //******************* APP LISTENING
 
 app.listen(PORT, () =>{
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+
+
+
