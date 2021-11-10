@@ -28,6 +28,7 @@ const users = {
   }
 }
 
+// Generates a random string of 6 alphanumeric characters
 const generateRandomString = function() {
   const options = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','0','1','2','3','4','5','6','7','8','9'];
   let string = '';
@@ -36,6 +37,18 @@ const generateRandomString = function() {
   }
   return string;
 };
+
+//Checks if an email exists in the users object
+//Returns true if exists and false otherwise
+const emailChecker = function (emailToCheck) {
+
+  for (let user in users){
+    if (emailToCheck === users[user].email){
+      return true
+    }
+  }
+  return false
+}
 
 
 //******************* GET REQUESTS
@@ -133,12 +146,24 @@ app.post("/login", (req,res) => {
 //Acquires the users email and password and stores in the global users object 
 //Redirects user to 
 app.post("/register", (req,res) =>{
+  
+  if (req.body.email === '' || req.body.password === ''){
+    res.status(400).send('INVALID USERNAME OR PASSWORD')
+    return
+  }
+  
+  if (emailChecker(req.body.email)){
+    res.status(400).send('EMAIL ALREADY EXISTS')
+    return
+  }
+  
   let userId = "user" + generateRandomString();
   users[userId] = {
     id: userId,
     email: req.body.email,
     password:req.body.password
   }
+
   res.cookie('user_id', userId)
   res.redirect('/urls');
 })
