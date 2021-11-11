@@ -13,8 +13,8 @@ app.use(cookieSession({
 
 app.set("view engine", "ejs");
 
-const bcrypt =require("bcryptjs");
-const { getUserByEmail } = require("./helpers");
+const bcrypt = require("bcryptjs");
+const { getUserByEmail, generateRandomString, passwordChecker, provideId, databaseFilter } = require("./helpers");
 
 //******************* DATABASE
 
@@ -46,58 +46,6 @@ const users = {
   }
 };
 
-//******************* HELPER FUNCTIONS
-
-
-// Generates a random string of 6 alphanumeric characters
-const generateRandomString = function() {
-  const options = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','0','1','2','3','4','5','6','7','8','9'];
-  let string = '';
-  for (let i = 0; i < 6; i++) {
-    string += options[ Math.floor(Math.random() * (62))];
-  }
-  return string;
-};
-
-
-//Checks if an password matchs for a specific email
-//Returns true if exists and false otherwise
-const passowrdChecker = function(email, passwordToCheck) {
-
-  for (let user in users) {
-    if (email === users[user].email) {
-      if (bcrypt.compareSync(passwordToCheck, users[user].password)) {
-        return true;
-      } else {
-        return false;
-      }
-    }
-  }
-  return false;
-};
-
-//Returns id for specified email
-const provideId = function(email) {
-
-  for (let user in users) {
-    if (email === users[user].email) {
-      return users[user].id;
-    }
-  }
-  return false;
-};
-
-//Returns back a new object with only the URLS pertaining to the login
-const databasefilter = function(data, checkId) {
-  let filteredData = {};
-  for (let link in data) {
-    if (data[link].userID === checkId) {
-      filteredData[link] = data[link];
-    }
-  }
-  return filteredData;
-};
-
 
 //******************* GET REQUESTS
 
@@ -120,9 +68,9 @@ app.get("/hello", (req, res) =>{
 //fitrst filter the urlDatabase for specified user
 app.get("/urls", (req, res) => {
 
-  req.session.user_id
+  req.session.user_id;
   
-  let filterDatbase = databasefilter(urlDatabase,req.session.user_id);
+  let filterDatbase = databaseFilter(urlDatabase,req.session.user_id);
   const templateVars = { urls: filterDatbase, user: users[req.session.user_id] };
   
   res.render("urls_index", templateVars);
@@ -156,7 +104,7 @@ app.get("/urls/:shortURL", (req, res) => {
     return;
   }
 
-  let filterDatbase = databasefilter(urlDatabase,req.session.user_id);
+  let filterDatbase = databaseFilter(urlDatabase,req.session.user_id);
 
   //checks to see if url belongs to user
   if (!(req.params.shortURL in filterDatbase)) {
@@ -229,7 +177,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     return;
   }
   
-  let filterDatbase = databasefilter(urlDatabase,req.session.user_id);
+  let filterDatbase = databaseFilter(urlDatabase,req.session.user_id);
   //checks to see if url belongs to user
   if (!(req.params.shortURL in filterDatbase)) {
     res.send("URL DOES NOT BELONG TO USER");
@@ -254,7 +202,7 @@ app.post("/urls/:id", (req,res) => {
     return;
   }
 
-  let filterDatbase = databasefilter(urlDatabase,req.session.user_id);
+  let filterDatbase = databaseFilter(urlDatabase,req.session.user_id);
   //checks to see if url belongs to user
   if (!(req.params.id in filterDatbase)) {
     res.send("URL DOES NOT BELONG TO USER");
@@ -274,7 +222,7 @@ app.post("/urls/:id", (req,res) => {
 // Redirects user back to /urls
 app.post("/logout", (req,res) => {
   //res.clearCookie('user_id');
-  delete req.session.user_id
+  delete req.session.user_id;
   res.redirect('/urls');
 });
 
@@ -287,13 +235,13 @@ app.post("/login", (req,res) => {
     return;
   } else
 
-  if (!passowrdChecker(req.body.email,req.body.password)) {
+  if (!passwordChecker(req.body.email,req.body.password, users)) {
     res.status(403).send('PASSWORD INVALID');
     return;
   }
 
   //res.cookie('user_id', provideId(req.body.email));
-  req.session.user_id =  provideId(req.body.email)
+  req.session.user_id =  provideId(req.body.email, users);
   res.redirect('/urls');
 
   
@@ -313,7 +261,7 @@ app.post("/register", (req,res) =>{
     return;
   }
   
-  hashedPassword = bcrypt.hashSync(req.body.password, 10)
+  let hashedPassword = bcrypt.hashSync(req.body.password, 10);
 
 
   let userId = "user" + generateRandomString();
@@ -324,7 +272,7 @@ app.post("/register", (req,res) =>{
   };
 
   //res.cookie('user_id', userId);
-  req.session.user_id = userId
+  req.session.user_id = userId;
 
   
   //than yo access i use req.session.user_id
