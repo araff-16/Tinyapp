@@ -2,49 +2,37 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 
+//Body parser to read req.body
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
+//Needed to create encrypted cookies
 const cookieSession = require('cookie-session');
 app.use(cookieSession({
   name: 'session',
   keys: ['secret key', 'key2'],
 }));
 
+//Need to set views engine so ejs templates work
 app.set("view engine", "ejs");
 
+//bcrypt need to hash passwords
 const bcrypt = require("bcryptjs");
-const { getUserByEmail, generateRandomString, passwordChecker, provideId, databaseFilter } = require("./helpers");
 
-//******************* DATABASE
+//Access to all helper functions
+const { 
+  getUserByEmail,
+  generateRandomString,
+  passwordChecker,
+  provideId,
+  databaseFilter
+} = require("./helpers");
 
-const urlDatabase = {
-  b6UTxQ: {
-    longURL: "https://www.tsn.ca",
-    userID: "userRandomID"
-  },
-  i3BoGr: {
-    longURL: "https://www.google.ca",
-    userID: "userRandomID"
-  },
-  su52A9: {
-    longURL: "https://www.google.ca",
-    userID: "user2RandomID"
-  }
-};
-
-const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: bcrypt.hashSync("qwert", 10)
-  },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: bcrypt.hashSync("funk", 10)
-  }
-};
+//Acccess to stored data
+const { 
+  urlDatabase,
+  users
+} = require("./database");
 
 
 //******************* GET REQUESTS
