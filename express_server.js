@@ -20,7 +20,7 @@ app.set("view engine", "ejs");
 const bcrypt = require("bcryptjs");
 
 //Access to all helper functions
-const { 
+const {
   getUserByEmail,
   generateRandomString,
   passwordChecker,
@@ -29,7 +29,7 @@ const {
 } = require("./helpers");
 
 //Acccess to stored data
-const { 
+const {
   urlDatabase,
   users
 } = require("./database");
@@ -37,9 +37,16 @@ const {
 
 //******************* GET REQUESTS
 
-//Sends Hello to client
+//redirects user to /login if not signed in
+//redirects user to /urls if signed in
 app.get('/',(req,res)=> {
-  res.send('Hello!');
+  
+  //check to see if user logged in
+  if (!req.session.user_id) {
+    res.redirect("/login");
+    return;
+  }
+  res.redirect("/urls");
 });
 
 //Provides JSON string of Database
@@ -114,18 +121,32 @@ app.get("/u/:shortURL", (req, res) => {
     return;
   }
 
-  //If the URL does not exist 
+  //If the URL does not exist
   res.send("NO LONG URL EXISTS");
 });
 
 //Takes client to register page
 app.get("/register", (req,res) => {
+
+  //Checks if user is already logged in
+  if (req.session.user_id) {
+    res.redirect("/urls");
+    return;
+  }
+  
   const templateVars = { user: users[req.session.user_id] };
   res.render("urls_register", templateVars);
 });
 
 //Takes client to login page
 app.get("/login", (req,res) => {
+  
+  //Checks if user is already logged in
+  if (req.session.user_id) {
+    res.redirect("/urls");
+    return;
+  }
+  
   const templateVars = { user: users[req.session.user_id] };
   res.render("urls_login", templateVars);
 });
