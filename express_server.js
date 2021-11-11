@@ -99,15 +99,15 @@ const provideId = function(email) {
 };
 
 //Returns back a new object with only the URLS pertaining to the login
-const databasefilter = function(data, checkId){
-  let filteredData ={}
-  for (let link in data){
-    if (data[link].userID === checkId){
-      filteredData[link] = data[link]
+const databasefilter = function(data, checkId) {
+  let filteredData = {};
+  for (let link in data) {
+    if (data[link].userID === checkId) {
+      filteredData[link] = data[link];
     }
   }
-  return filteredData
-}
+  return filteredData;
+};
 
 
 //******************* GET REQUESTS
@@ -131,8 +131,8 @@ app.get("/hello", (req, res) =>{
 //fitrst filter the urlDatabase for specified user
 app.get("/urls", (req, res) => {
 
-  let filterDatbase = databasefilter(urlDatabase,req.cookies["user_id"])
-  console.log(filterDatbase)
+  let filterDatbase = databasefilter(urlDatabase,req.cookies["user_id"]);
+  console.log(filterDatbase);
   const templateVars = { urls: filterDatbase, user: users[req.cookies["user_id"]] };
   
   res.render("urls_index", templateVars);
@@ -153,16 +153,23 @@ app.get("/urls/new", (req, res) => {
 
 // Provides page that shows longURL and shortURL
 app.get("/urls/:shortURL", (req, res) => {
+  
+  //Checks to see if logged in
+  if (!req.cookies["user_id"]) {
+    res.send("PLEASE LOGIN");
+    return;
+  }
+  
   //Check to verify if shortURL is valid
   if (!urlDatabase[req.params.shortURL]) {
     res.send("INVALID URL");
     return;
   }
-  let filterDatbase = databasefilter(urlDatabase,req.cookies["user_id"])
-  console.log(filterDatbase)
-  console.log(req.params.shortURL)
-  //checks to see if url belongs to user 
-  if (!(req.params.shortURL in filterDatbase)){
+
+  let filterDatbase = databasefilter(urlDatabase,req.cookies["user_id"]);
+
+  //checks to see if url belongs to user
+  if (!(req.params.shortURL in filterDatbase)) {
     res.send("URL DOES NOT BELONG TO USER");
     return;
   }
@@ -220,6 +227,24 @@ app.post("/urls", (req, res) => {
 
 //Deletes URL after delete button is pressed on /urls page
 app.post("/urls/:shortURL/delete", (req, res) => {
+
+  if (!req.cookies["user_id"]) {
+    res.send("PLEASE LOGIN");
+    return;
+  }
+
+  if (!(req.params.shortURL in urlDatabase)) {
+    res.send("INVALID URL");
+    return;
+  }
+  
+  let filterDatbase = databasefilter(urlDatabase,req.cookies["user_id"]);
+  //checks to see if url belongs to user
+  if (!(req.params.shortURL in filterDatbase)) {
+    res.send("URL DOES NOT BELONG TO USER");
+    return;
+  }
+
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls');
 });
@@ -228,12 +253,29 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 //redirects user back to /urls after submission
 app.post("/urls/:id", (req,res) => {
 
+  if (!req.cookies["user_id"]) {
+    res.send("PLEASE LOGIN");
+    return;
+  }
+
+  if (!(req.params.id in urlDatabase)) {
+    res.send("INVALID URL");
+    return;
+  }
+
+  let filterDatbase = databasefilter(urlDatabase,req.cookies["user_id"]);
+  //checks to see if url belongs to user
+  if (!(req.params.id in filterDatbase)) {
+    res.send("URL DOES NOT BELONG TO USER");
+    return;
+  }
+
   urlDatabase[req.params.id] = {
     longURL:req.body.longURL,
     userID: req.cookies["user_id"]
   };
 
-  console.log(urlDatabase);
+  
   res.redirect('/urls');
 });
 
