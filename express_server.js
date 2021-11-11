@@ -132,7 +132,6 @@ app.get("/hello", (req, res) =>{
 app.get("/urls", (req, res) => {
 
   let filterDatbase = databasefilter(urlDatabase,req.cookies["user_id"]);
-  console.log(filterDatbase);
   const templateVars = { urls: filterDatbase, user: users[req.cookies["user_id"]] };
   
   res.render("urls_index", templateVars);
@@ -174,7 +173,7 @@ app.get("/urls/:shortURL", (req, res) => {
     return;
   }
 
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: users[req.cookies["user_id"]] };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.cookies["user_id"]] };
   res.render("urls_show", templateVars);
 });
 
