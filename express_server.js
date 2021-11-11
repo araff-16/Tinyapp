@@ -10,6 +10,8 @@ app.use(cookieParser());
 
 app.set("view engine", "ejs");
 
+const bcrypt =require("bcryptjs")
+
 //******************* DATABASE
 /*
 JUST TO SEE WHAT IT LOOKED LIKE BEFORE
@@ -77,7 +79,7 @@ const passowrdChecker = function(email, passwordToCheck) {
 
   for (let user in users) {
     if (email === users[user].email) {
-      if (passwordToCheck === users[user].password) {
+      if (bcrypt.compareSync(passwordToCheck, users[user].password)) {
         return true;
       } else {
         return false;
@@ -319,11 +321,14 @@ app.post("/register", (req,res) =>{
     return;
   }
   
+  hashedPassword = bcrypt.hashSync(req.body.password, 10)
+
+
   let userId = "user" + generateRandomString();
   users[userId] = {
     id: userId,
     email: req.body.email,
-    password:req.body.password
+    password:hashedPassword
   };
 
   res.cookie('user_id', userId);
