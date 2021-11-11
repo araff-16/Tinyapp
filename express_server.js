@@ -5,8 +5,11 @@ const PORT = 8080;
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
-const cookieParser = require('cookie-parser');
-app.use(cookieParser());
+const cookieSession = require('cookie-session');
+app.use(cookieSession({
+  name: 'session',
+  keys: ['secret key', 'key2'],
+}));
 
 app.set("view engine", "ejs");
 
@@ -39,12 +42,12 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "qwert"
+    password: bcrypt.hashSync("qwert", 10)
   },
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "funk"
+    password: bcrypt.hashSync("funk", 10)
   }
 };
 
@@ -133,8 +136,10 @@ app.get("/hello", (req, res) =>{
 //fitrst filter the urlDatabase for specified user
 app.get("/urls", (req, res) => {
 
-  let filterDatbase = databasefilter(urlDatabase,req.cookies["user_id"]);
-  const templateVars = { urls: filterDatbase, user: users[req.cookies["user_id"]] };
+  req.session.user_id
+  
+  let filterDatbase = databasefilter(urlDatabase,req.session.user_id);
+  const templateVars = { urls: filterDatbase, user: users[req.session.user_id] };
   
   res.render("urls_index", templateVars);
 });
@@ -143,12 +148,12 @@ app.get("/urls", (req, res) => {
 //First checks if a user is logged in with cookies
 app.get("/urls/new", (req, res) => {
   
-  if (!req.cookies["user_id"]) {
+  if (!req.session.user_id) {
     res.redirect("/login");
     return;
   }
 
-  const templateVars = { user: users[req.cookies["user_id"]] };
+  const templateVars = { user: users[req.session.user_id] };
   res.render("urls_new", templateVars);
 });
 
@@ -156,7 +161,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   
   //Checks to see if logged in
-  if (!req.cookies["user_id"]) {
+  if (!req.session.user_id) {
     res.send("PLEASE LOGIN");
     return;
   }
@@ -167,7 +172,7 @@ app.get("/urls/:shortURL", (req, res) => {
     return;
   }
 
-  let filterDatbase = databasefilter(urlDatabase,req.cookies["user_id"]);
+  let filterDatbase = databasefilter(urlDatabase,req.session.user_id);
 
   //checks to see if url belongs to user
   if (!(req.params.shortURL in filterDatbase)) {
@@ -175,7 +180,7 @@ app.get("/urls/:shortURL", (req, res) => {
     return;
   }
 
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.cookies["user_id"]] };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.user_id] };
   res.render("urls_show", templateVars);
 });
 
@@ -192,13 +197,13 @@ app.get("/u/:shortURL", (req, res) => {
 
 //Takes client to register page
 app.get("/register", (req,res) => {
-  const templateVars = { user: users[req.cookies["user_id"]] };
+  const templateVars = { user: users[req.session.user_id] };
   res.render("urls_register", templateVars);
 });
 
 //Takes client to login page
 app.get("/login", (req,res) => {
-  const templateVars = { user: users[req.cookies["user_id"]] };
+  const templateVars = { user: users[req.session.user_id] };
   res.render("urls_login", templateVars);
 });
 
@@ -210,7 +215,7 @@ app.get("/login", (req,res) => {
 //Blocks post request if user is not logged in
 app.post("/urls", (req, res) => {
 
-  if (!req.cookies["user_id"]) {
+  if (!req.session.user_id) {
     res.send("PLEASE LOGIN");
     return;
   }
@@ -219,7 +224,7 @@ app.post("/urls", (req, res) => {
 
   urlDatabase[shortURL] = {
     longURL: req.body.longURL,
-    userID: req.cookies["user_id"]
+    userID: req.session.user_id
   };
 
   
@@ -229,7 +234,8 @@ app.post("/urls", (req, res) => {
 //Deletes URL after delete button is pressed on /urls page
 app.post("/urls/:shortURL/delete", (req, res) => {
 
-  if (!req.cookies["user_id"]) {
+  
+  if (!req.session.user_id) {
     res.send("PLEASE LOGIN");
     return;
   }
@@ -239,7 +245,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     return;
   }
   
-  let filterDatbase = databasefilter(urlDatabase,req.cookies["user_id"]);
+  let filterDatbase = databasefilter(urlDatabase,req.session.user_id);
   //checks to see if url belongs to user
   if (!(req.params.shortURL in filterDatbase)) {
     res.send("URL DOES NOT BELONG TO USER");
@@ -254,7 +260,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 //redirects user back to /urls after submission
 app.post("/urls/:id", (req,res) => {
 
-  if (!req.cookies["user_id"]) {
+  if (!req.session.user_id) {
     res.send("PLEASE LOGIN");
     return;
   }
@@ -264,7 +270,7 @@ app.post("/urls/:id", (req,res) => {
     return;
   }
 
-  let filterDatbase = databasefilter(urlDatabase,req.cookies["user_id"]);
+  let filterDatbase = databasefilter(urlDatabase,req.session.user_id);
   //checks to see if url belongs to user
   if (!(req.params.id in filterDatbase)) {
     res.send("URL DOES NOT BELONG TO USER");
@@ -273,7 +279,7 @@ app.post("/urls/:id", (req,res) => {
 
   urlDatabase[req.params.id] = {
     longURL:req.body.longURL,
-    userID: req.cookies["user_id"]
+    userID: req.session.user_id
   };
 
   
@@ -283,7 +289,8 @@ app.post("/urls/:id", (req,res) => {
 // Deletes username cookie
 // Redirects user back to /urls
 app.post("/logout", (req,res) => {
-  res.clearCookie('user_id');
+  //res.clearCookie('user_id');
+  delete req.session.user_id
   res.redirect('/urls');
 });
 
@@ -301,7 +308,8 @@ app.post("/login", (req,res) => {
     return;
   }
 
-  res.cookie('user_id', provideId(req.body.email));
+  //res.cookie('user_id', provideId(req.body.email));
+  req.session.user_id =  provideId(req.body.email)
   res.redirect('/urls');
 
   
@@ -331,7 +339,13 @@ app.post("/register", (req,res) =>{
     password:hashedPassword
   };
 
-  res.cookie('user_id', userId);
+  //res.cookie('user_id', userId);
+  req.session.user_id = userId
+
+  
+  //than yo access i use req.session.user_id
+  // to clear cookie req.session.user_id =null
+  //delete req.session.user_id
   res.redirect('/urls');
 });
 
