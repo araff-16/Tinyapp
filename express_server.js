@@ -13,16 +13,11 @@ app.use(cookieSession({
 
 app.set("view engine", "ejs");
 
-const bcrypt =require("bcryptjs")
+const bcrypt =require("bcryptjs");
+const { getUserByEmail } = require("./helpers");
 
 //******************* DATABASE
-/*
-JUST TO SEE WHAT IT LOOKED LIKE BEFORE
-const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
-*/
+
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -64,17 +59,6 @@ const generateRandomString = function() {
   return string;
 };
 
-//Checks if an email exists in the users object
-//Returns true if exists and false otherwise
-const emailChecker = function(emailToCheck) {
-
-  for (let user in users) {
-    if (emailToCheck === users[user].email) {
-      return users[user].id;
-    }
-  }
-  return null;
-};
 
 //Checks if an password matchs for a specific email
 //Returns true if exists and false otherwise
@@ -298,7 +282,7 @@ app.post("/logout", (req,res) => {
 // Redirects user back to /urls
 app.post("/login", (req,res) => {
 
-  if (!emailChecker(req.body.email)) {
+  if (!getUserByEmail(req.body.email, users)) {
     res.status(403).send('USER EMAIL CANNOT BE FOUND');
     return;
   } else
@@ -324,7 +308,7 @@ app.post("/register", (req,res) =>{
     return;
   }
   
-  if (emailChecker(req.body.email)) {
+  if (getUserByEmail(req.body.email, users)) {
     res.status(400).send('EMAIL ALREADY EXISTS');
     return;
   }
