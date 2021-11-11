@@ -52,13 +52,13 @@ app.get("/hello", (req, res) =>{
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-//Provides a list of all shortURLs with corresponding longURLS
-//fitrst filter the urlDatabase for specified user
+//Provides a list of all shortURLs and longURLS for particular user
+//The option to delete and edit URLs is deisplayed
 app.get("/urls", (req, res) => {
 
-  req.session.user_id;
-  
+  //Filters the URLdatabase to obtain URLs for specific user
   let filterDatbase = databaseFilter(urlDatabase,req.session.user_id);
+
   const templateVars = { urls: filterDatbase, user: users[req.session.user_id] };
   
   res.render("urls_index", templateVars);
@@ -68,6 +68,7 @@ app.get("/urls", (req, res) => {
 //First checks if a user is logged in with cookies
 app.get("/urls/new", (req, res) => {
   
+  //check to see if user logged in
   if (!req.session.user_id) {
     res.redirect("/login");
     return;
@@ -77,7 +78,8 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-// Provides page that shows longURL and shortURL
+//Provides page that shows longURL and shortURL
+
 app.get("/urls/:shortURL", (req, res) => {
   
   //Checks to see if logged in
@@ -86,7 +88,7 @@ app.get("/urls/:shortURL", (req, res) => {
     return;
   }
   
-  //Check to verify if shortURL is valid
+  //Checks if shortURL is valid
   if (!urlDatabase[req.params.shortURL]) {
     res.send("INVALID URL");
     return;
@@ -94,7 +96,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
   let filterDatbase = databaseFilter(urlDatabase,req.session.user_id);
 
-  //checks to see if url belongs to user
+  //Checks to see if url belongs to user
   if (!(req.params.shortURL in filterDatbase)) {
     res.send("URL DOES NOT BELONG TO USER");
     return;
@@ -104,15 +106,16 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-// redirects client to the longURL corresponding to the shortURL
+//Redirects client to the longURL corresponding to the shortURL
 app.get("/u/:shortURL", (req, res) => {
   if (urlDatabase[req.params.shortURL]) {
     let longURL = urlDatabase[req.params.shortURL].longURL;
     res.redirect(longURL);
     return;
   }
+
+  //If the URL does not exist 
   res.send("NO LONG URL EXISTS");
-  
 });
 
 //Takes client to register page
@@ -131,10 +134,10 @@ app.get("/login", (req,res) => {
 
 //Recieves longURL, generates shortURL and saves the pair to database
 //Redirects client to the page which shows the longURL and shortURL
-//Note we had to install body-parser to read from the request body
 //Blocks post request if user is not logged in
 app.post("/urls", (req, res) => {
 
+  //Check to see if user logged in
   if (!req.session.user_id) {
     res.send("PLEASE LOGIN");
     return;
@@ -142,31 +145,32 @@ app.post("/urls", (req, res) => {
   
   let shortURL = generateRandomString();
 
+  //Saves info to database
   urlDatabase[shortURL] = {
     longURL: req.body.longURL,
     userID: req.session.user_id
   };
 
-  
   res.redirect(`/urls/${shortURL}`);
 });
 
 //Deletes URL after delete button is pressed on /urls page
 app.post("/urls/:shortURL/delete", (req, res) => {
 
-  
+  //Checks to see user logged in
   if (!req.session.user_id) {
     res.send("PLEASE LOGIN");
     return;
   }
 
+  //Checks to see if URL is valid
   if (!(req.params.shortURL in urlDatabase)) {
     res.send("INVALID URL");
     return;
   }
   
   let filterDatbase = databaseFilter(urlDatabase,req.session.user_id);
-  //checks to see if url belongs to user
+  //Checks to see if url belongs to user
   if (!(req.params.shortURL in filterDatbase)) {
     res.send("URL DOES NOT BELONG TO USER");
     return;
@@ -177,21 +181,23 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 //Post request for updating long URL
-//redirects user back to /urls after submission
+//Redirects user back to /urls after submission
 app.post("/urls/:id", (req,res) => {
 
+  //Checks if user is logged in
   if (!req.session.user_id) {
     res.send("PLEASE LOGIN");
     return;
   }
 
+  //Checks if URL is valid
   if (!(req.params.id in urlDatabase)) {
     res.send("INVALID URL");
     return;
   }
 
   let filterDatbase = databaseFilter(urlDatabase,req.session.user_id);
-  //checks to see if url belongs to user
+  //Checks to see if url belongs to user
   if (!(req.params.id in filterDatbase)) {
     res.send("URL DOES NOT BELONG TO USER");
     return;
@@ -206,10 +212,10 @@ app.post("/urls/:id", (req,res) => {
   res.redirect('/urls');
 });
 
-// Deletes username cookie
+// Deletes users cookies
 // Redirects user back to /urls
 app.post("/logout", (req,res) => {
-  //res.clearCookie('user_id');
+  
   delete req.session.user_id;
   res.redirect('/urls');
 });
@@ -218,11 +224,13 @@ app.post("/logout", (req,res) => {
 // Redirects user back to /urls
 app.post("/login", (req,res) => {
 
+  //checks to see if email exists
   if (!getUserByEmail(req.body.email, users)) {
     res.status(403).send('USER EMAIL CANNOT BE FOUND');
     return;
   } else
 
+  //Checks to see if password is valid
   if (!passwordChecker(req.body.email,req.body.password, users)) {
     res.status(403).send('PASSWORD INVALID');
     return;
@@ -231,19 +239,19 @@ app.post("/login", (req,res) => {
   //res.cookie('user_id', provideId(req.body.email));
   req.session.user_id =  provideId(req.body.email, users);
   res.redirect('/urls');
-
-  
 });
 
-//Acquires the users email and password and stores in the global users object
-//Redirects user to
+//Acquires the users email and password and saves it in database
+//Redirects user to /urls
 app.post("/register", (req,res) =>{
   
+  //email or password cannot be empty strings
   if (req.body.email === '' || req.body.password === '') {
     res.status(400).send('INVALID USERNAME OR PASSWORD');
     return;
   }
   
+  //email cannot already be in use
   if (getUserByEmail(req.body.email, users)) {
     res.status(400).send('EMAIL ALREADY EXISTS');
     return;
@@ -251,7 +259,7 @@ app.post("/register", (req,res) =>{
   
   let hashedPassword = bcrypt.hashSync(req.body.password, 10);
 
-
+  //saving user to database
   let userId = "user" + generateRandomString();
   users[userId] = {
     id: userId,
@@ -259,17 +267,10 @@ app.post("/register", (req,res) =>{
     password:hashedPassword
   };
 
-  //res.cookie('user_id', userId);
   req.session.user_id = userId;
 
-  
-  //than yo access i use req.session.user_id
-  // to clear cookie req.session.user_id =null
-  //delete req.session.user_id
   res.redirect('/urls');
 });
-
-
 
 //******************* APP LISTENING
 
