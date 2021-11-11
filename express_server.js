@@ -19,27 +19,27 @@ const urlDatabase = {
 */
 const urlDatabase = {
   b6UTxQ: {
-      longURL: "https://www.tsn.ca",
-      userID: "aJ48lW"
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW"
   },
   i3BoGr: {
-      longURL: "https://www.google.ca",
-      userID: "aJ48lW"
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW"
   }
 };
 
-const users = { 
+const users = {
   "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
+    id: "userRandomID",
+    email: "user@example.com",
     password: "qwert"
   },
- "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
     password: "dishwasher-funk"
   }
-}
+};
 
 //******************* HELPER FUNCTIONS
 
@@ -56,43 +56,43 @@ const generateRandomString = function() {
 
 //Checks if an email exists in the users object
 //Returns true if exists and false otherwise
-const emailChecker = function (emailToCheck) {
+const emailChecker = function(emailToCheck) {
 
-  for (let user in users){
-    if (emailToCheck === users[user].email){
-      return users[user].id
+  for (let user in users) {
+    if (emailToCheck === users[user].email) {
+      return users[user].id;
     }
   }
 
-  return null
-}
+  return null;
+};
 
 //Checks if an password matchs for a specific email
 //Returns true if exists and false otherwise
-const passowrdChecker = function (email, passwordToCheck) {
+const passowrdChecker = function(email, passwordToCheck) {
 
-  for (let user in users){
-    if (email === users[user].email){
-      if (passwordToCheck === users[user].password){
-        return true
+  for (let user in users) {
+    if (email === users[user].email) {
+      if (passwordToCheck === users[user].password) {
+        return true;
       } else {
-        return false
+        return false;
       }
     }
   }
-  return false
-}
+  return false;
+};
 
 //Returns id for specied email
-const provideId = function (email) {
+const provideId = function(email) {
 
-  for (let user in users){
-    if (email === users[user].email){
-      return users[user].id
+  for (let user in users) {
+    if (email === users[user].email) {
+      return users[user].id;
     }
   }
-  return false
-}
+  return false;
+};
 
 //******************* GET REQUESTS
 
@@ -122,9 +122,9 @@ app.get("/urls", (req, res) => {
 //First checks if a user is logged in with cookies
 app.get("/urls/new", (req, res) => {
   
-  if (!req.cookies["user_id"]){
-    res.redirect("/login")
-    return
+  if (!req.cookies["user_id"]) {
+    res.redirect("/login");
+    return;
   }
 
   const templateVars = { user: users[req.cookies["user_id"]] };
@@ -144,21 +144,26 @@ app.get("/urls/:shortURL", (req, res) => {
 
 // redirects client to the longURL corresponding to the shortURL
 app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+  if (urlDatabase[req.params.shortURL]) {
+    let longURL = urlDatabase[req.params.shortURL].longURL;
+    res.redirect(longURL);
+    return;
+  }
+  res.send("NO LONG URL EXISTS");
+  
 });
 
-//Takes client to register page 
+//Takes client to register page
 app.get("/register", (req,res) => {
-  const templateVars = { user: users[req.cookies["user_id"]] }
-  res.render("urls_register", templateVars)
-})
+  const templateVars = { user: users[req.cookies["user_id"]] };
+  res.render("urls_register", templateVars);
+});
 
 //Takes client to login page
 app.get("/login", (req,res) => {
-  const templateVars = { user: users[req.cookies["user_id"]] }
-  res.render("urls_login", templateVars)
-})
+  const templateVars = { user: users[req.cookies["user_id"]] };
+  res.render("urls_login", templateVars);
+});
 
 //******************* POST REQUESTS
 
@@ -168,9 +173,9 @@ app.get("/login", (req,res) => {
 //Blocks post request if user is not logged in
 app.post("/urls", (req, res) => {
 
-  if (!req.cookies["user_id"]){
-    res.send("PLEASE LOGIN")
-    return
+  if (!req.cookies["user_id"]) {
+    res.send("PLEASE LOGIN");
+    return;
   }
   
   let shortURL = generateRandomString();
@@ -178,9 +183,9 @@ app.post("/urls", (req, res) => {
   urlDatabase[shortURL] = {
     longURL: req.body.longURL,
     userID: req.cookies["user_id"]
-  }
+  };
 
-  console.log(urlDatabase)
+  console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -196,10 +201,10 @@ app.post("/urls/:id", (req,res) => {
 
   urlDatabase[req.params.id] = {
     longURL:req.body.longURL,
-     userID: req.cookies["user_id"] 
+    userID: req.cookies["user_id"]
   };
 
-  console.log(urlDatabase)
+  console.log(urlDatabase);
   res.redirect('/urls');
 });
 
@@ -214,34 +219,34 @@ app.post("/logout", (req,res) => {
 // Redirects user back to /urls
 app.post("/login", (req,res) => {
 
-  if (!emailChecker(req.body.email)){
-    res.status(403).send('USER EMAIL CANNOT BE FOUND')
-    return
-  } else 
+  if (!emailChecker(req.body.email)) {
+    res.status(403).send('USER EMAIL CANNOT BE FOUND');
+    return;
+  } else
 
-  if(!passowrdChecker(req.body.email,req.body.password)){
-    res.status(403).send('PASSWORD INVALID')
-    return
+  if (!passowrdChecker(req.body.email,req.body.password)) {
+    res.status(403).send('PASSWORD INVALID');
+    return;
   }
 
-  res.cookie('user_id', provideId(req.body.email))
+  res.cookie('user_id', provideId(req.body.email));
   res.redirect('/urls');
 
   
 });
 
-//Acquires the users email and password and stores in the global users object 
-//Redirects user to 
+//Acquires the users email and password and stores in the global users object
+//Redirects user to
 app.post("/register", (req,res) =>{
   
-  if (req.body.email === '' || req.body.password === ''){
-    res.status(400).send('INVALID USERNAME OR PASSWORD')
-    return
+  if (req.body.email === '' || req.body.password === '') {
+    res.status(400).send('INVALID USERNAME OR PASSWORD');
+    return;
   }
   
-  if (emailChecker(req.body.email)){
-    res.status(400).send('EMAIL ALREADY EXISTS')
-    return
+  if (emailChecker(req.body.email)) {
+    res.status(400).send('EMAIL ALREADY EXISTS');
+    return;
   }
   
   let userId = "user" + generateRandomString();
@@ -249,11 +254,11 @@ app.post("/register", (req,res) =>{
     id: userId,
     email: req.body.email,
     password:req.body.password
-  }
+  };
 
-  res.cookie('user_id', userId)
+  res.cookie('user_id', userId);
   res.redirect('/urls');
-})
+});
 
 
 
