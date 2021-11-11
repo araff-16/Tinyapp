@@ -12,6 +12,7 @@ app.set("view engine", "ejs");
 
 //******************* DATABASE
 /*
+JUST TO SEE WHAT IT LOOKED LIKE BEFORE
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -41,7 +42,7 @@ const users = {
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: "funk"
   }
 };
 
@@ -67,7 +68,6 @@ const emailChecker = function(emailToCheck) {
       return users[user].id;
     }
   }
-
   return null;
 };
 
@@ -87,7 +87,7 @@ const passowrdChecker = function(email, passwordToCheck) {
   return false;
 };
 
-//Returns id for specied email
+//Returns id for specified email
 const provideId = function(email) {
 
   for (let user in users) {
@@ -97,6 +97,18 @@ const provideId = function(email) {
   }
   return false;
 };
+
+//Returns back a new object with only the URLS pertaining to the login
+const databasefilter = function(data, checkId){
+  let filteredData ={}
+  for (let link in data){
+    if (data[link].userID === checkId){
+      filteredData[link] = data[link]
+    }
+  }
+  return filteredData
+}
+
 
 //******************* GET REQUESTS
 
@@ -116,8 +128,12 @@ app.get("/hello", (req, res) =>{
 });
 
 //Provides a list of all shortURLs with corresponding longURLS
+//fitrst filter the urlDatabase for specified user
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
+
+  let filterDatbase = databasefilter(urlDatabase,req.cookies["user_id"])
+  console.log(filterDatbase)
+  const templateVars = { urls: filterDatbase, user: users[req.cookies["user_id"]] };
   
   res.render("urls_index", templateVars);
 });
@@ -142,6 +158,15 @@ app.get("/urls/:shortURL", (req, res) => {
     res.send("INVALID URL");
     return;
   }
+  let filterDatbase = databasefilter(urlDatabase,req.cookies["user_id"])
+  console.log(filterDatbase)
+  console.log(req.params.shortURL)
+  //checks to see if url belongs to user 
+  if (!(req.params.shortURL in filterDatbase)){
+    res.send("URL DOES NOT BELONG TO USER");
+    return;
+  }
+
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: users[req.cookies["user_id"]] };
   res.render("urls_show", templateVars);
 });
@@ -189,7 +214,7 @@ app.post("/urls", (req, res) => {
     userID: req.cookies["user_id"]
   };
 
-  console.log(urlDatabase);
+  
   res.redirect(`/urls/${shortURL}`);
 });
 
