@@ -49,18 +49,8 @@ app.get('/',(req,res)=> {
   res.redirect("/urls");
 });
 
-//Provides JSON string of Database
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-//Provides Hello World
-app.get("/hello", (req, res) =>{
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
-
 //Provides a list of all shortURLs and longURLS for particular user
-//The option to delete and edit URLs is deisplayed
+//The option to delete and edit URLs is displayed
 app.get("/urls", (req, res) => {
 
   //Filters the URLdatabase to obtain URLs for specific user
@@ -133,7 +123,7 @@ app.get("/register", (req,res) => {
     res.redirect("/urls");
     return;
   }
-  
+
   const templateVars = { user: users[req.session.user_id] };
   res.render("urls_register", templateVars);
 });
