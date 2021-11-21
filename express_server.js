@@ -19,6 +19,10 @@ app.set("view engine", "ejs");
 //bcrypt need to hash passwords
 const bcrypt = require("bcryptjs");
 
+//Enabling PUT and DELETE using methodOverride 
+const methodOverride = require('method-override')
+app.use(methodOverride('_method'))
+
 //Access to all helper functions
 const {
   getUserByEmail,
@@ -166,7 +170,7 @@ app.post("/urls", (req, res) => {
 });
 
 //Deletes URL after delete button is pressed on /urls page
-app.post("/urls/:shortURL/delete", (req, res) => {
+app.delete("/urls/:shortURL", (req, res) => {
 
   //Checks to see user logged in
   if (!req.session.user_id) {
@@ -193,7 +197,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 //Post request for updating long URL
 //Redirects user back to /urls after submission
-app.post("/urls/:id", (req,res) => {
+app.put("/urls/:id", (req,res) => {
 
   //Checks if user is logged in
   if (!req.session.user_id) {
